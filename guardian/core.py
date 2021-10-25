@@ -71,10 +71,11 @@ class ObjectPermissionChecker:
         """
         if self.user and not self.user.is_active:
             return False
-        elif self.user and self.user.is_superuser:
+        elif self.user and self.user.usertenantpermissions.is_superuser:
             return True
         if '.' in perm:
             _, perm = perm.split('.', 1)
+            
         return perm in self.get_perms(obj)
 
     def get_group_filters(self, obj):
@@ -83,12 +84,13 @@ class ObjectPermissionChecker:
 
         group_model = get_group_obj_perms_model(obj)
         group_rel_name = group_model.permission.field.related_query_name()
+
         if self.user:
             fieldname = '{}__group__{}'.format(
                 group_rel_name,
-                User.groups.field.related_query_name(),
+                'user',
             )
-            group_filters = {fieldname: self.user}
+            group_filters = {fieldname: self.user.usertenantpermissions}
         else:
             group_filters = {'%s__group' % group_rel_name: self.group}
         if group_model.objects.is_generic():
@@ -156,7 +158,7 @@ class ObjectPermissionChecker:
             # If auto-prefetching enabled, do not hit database
             if guardian_settings.AUTO_PREFETCH:
                 return []
-            if self.user and self.user.is_superuser:
+            if self.user and self.user.usertenantpermissions.is_superuser:
                 perms = list(
                     Permission.objects.filter(content_type=ctype).values_list("codename", flat=True)
                 )
@@ -191,7 +193,7 @@ class ObjectPermissionChecker:
         User = get_user_model()
         pks, model, ctype = _get_pks_model_and_ctype(objects)
 
-        if self.user and self.user.is_superuser:
+        if self.user and self.user.usertenantpermissions.is_superuser:
             perms = list(
                 Permission.objects.filter(content_type=ctype).values_list("codename", flat=True)
             )
@@ -206,9 +208,9 @@ class ObjectPermissionChecker:
 
         if self.user:
             fieldname = 'group__{}'.format(
-                User.groups.field.related_query_name(),
+                'user',
             )
-            group_filters = {fieldname: self.user}
+            group_filters = {fieldname: self.user.usertenantpermissions}
         else:
             group_filters = {'group': self.group}
 

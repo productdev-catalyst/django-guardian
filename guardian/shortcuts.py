@@ -96,7 +96,7 @@ def assign_perm(perm, user_or_group, obj=None):
                                           codename=codename)
 
         if user:
-            user.user_permissions.add(perm)
+            user.usertenantpermissions.user_permissions.add(perm)
             return perm
         if group:
             group.permissions.add(perm)
@@ -171,7 +171,7 @@ def remove_perm(perm, user_or_group=None, obj=None):
             perm = Permission.objects.get(content_type__app_label=app_label,
                                           codename=codename)
         if user:
-            user.user_permissions.remove(perm)
+            user.usertenantpermissions.user_permissions.remove(perm)
             return
         if group:
             group.permissions.remove(perm)
