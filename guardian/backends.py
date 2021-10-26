@@ -16,7 +16,7 @@ def check_object_support(obj):
     return isinstance(obj, models.Model)
 
 
-def check_user_support(user_obj):
+def check_user_support(user_or_perm_obj):
     """
     Returns a tuple of checkresult and ``user_obj`` which should be used for
     permission checks
@@ -26,6 +26,14 @@ def check_user_support(user_obj):
     """
     # This is how we support anonymous users - simply try to retrieve User
     # instance and perform checks for that predefined user
+    
+    # With django tenant users it will pass in the usertenantpermissions obj
+    # so we are going to check for the user model first and then provide the user obj
+    # so it can continue
+
+    if not isinstance(user_or_perm_obj, get_user_model()):
+        user_obj = user_or_perm_obj.profile
+    
     if not user_obj.is_authenticated:
         # If anonymous user permission is disabled then they are always
         # unauthorized
